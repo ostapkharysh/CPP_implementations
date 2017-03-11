@@ -4,24 +4,41 @@
 #include <iostream>
 #include <string.h>
 #include <dirent.h>
-#include <iterator>
-#include <array>
+#include <sstream>
+
+
 
 using namespace std;
 char *curr_dir = "/usr/bin";
+string comm;
+string argum;
 
-void split(string data, string* comm = 0, string* arg = 0){
-    int i = 0;
-    while(i< sizeof(data)){
-        if (data[i] == ' '){
-            break;
+    int splitting(string l) {
+        string arr[3];
+
+        int i = 0;
+        stringstream ssin(l);
+
+        while (ssin.good() && i < 3) {
+            ssin >> arr[i];
+
+            ++i;
+            if(i == 3){
+               printf("ERROR : TU DAUN! TAK NE MOZNA PYSATY.");
+                return -1;
+            }
+
         }
-        i++;
-    }
-    comm[1000] = data.substr(0, i);
-    arg[1000] = data.substr(i+1, sizeof(data)-1);
+        comm = arr[0];
 
-}
+        argum = arr[1];
+        cout << comm << endl;
+        cout << argum;
+
+
+    }
+
+
 
 int ls(){
 /*
@@ -77,9 +94,8 @@ int main (int argc, char * const argv[]) {
 
         cout << curr_dir << "$ ";
         getline(cin, input);
-        cout << input;
-        split(input);
-        cout << *arg;
+        //cout << input<< "    input" << endl;
+        splitting(input);
         if (input == "pwd"){
             cout << curr_dir;
         }
@@ -87,13 +103,22 @@ int main (int argc, char * const argv[]) {
             ls();
 
         }
-        else if(input == "cd"){
+        else if(comm == "cd"){
+            if(argum=="."){
+                cout << "LASHARA. WONO NICHO NE ROBYT." << endl;
+            }
+            else if(argum == ".."){
+                cout << "To previous directory" << endl;
 
+            }
+            else if(argum == "~" || argum == "") {
+                cout << "Returnimg back to home dir" << endl;
+            }
+
+            
         }
 
         cout << "\n";
-
-
         //cout << input << endl;
 
 
