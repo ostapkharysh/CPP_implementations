@@ -102,10 +102,9 @@ int doLS(char* prog, char** argv){
             else if (kidpid == 0)
             {
                 // I am the child.
-                //cout << "Oles 5 cm" << endl << prog << endl;
                 char *cmd = (char *) myLs();
                 // abo mozna she tak v'ibaty:
-                //execvp (*cmd, argv);
+                // execvp (cmd, argv);
                 execvp ("Myls()", argv);
 
                 // The following lines should not happen (normally).
