@@ -106,6 +106,7 @@ int doLS(){
 
     argv[args.size()] = NULL;
 
+
     if ( strcmp( command, "exit" ) == 0 )
     {
         return 0;
