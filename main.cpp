@@ -59,7 +59,7 @@ int cd(){
 
 }
 
-int Myls(){
+int myLs(){
 
     DIR *dp = NULL;
     struct dirent *dptr = NULL;
@@ -84,38 +84,10 @@ int Myls(){
 }
 
 
-int doLS(){
-
-    // Show prompt.
-    cout << curr_dir << "$";
-    char command[128];
-    cin.getline( command, 128 );
-
-    vector<char*> args;
-    char* prog = strtok( command, " " );
-    char* tmp = prog;
-    while ( tmp != NULL )
-    {
-        args.push_back( tmp );
-        tmp = strtok( NULL, " " );
-    }
-
-    char** argv = new char*[args.size()+1];
-    for ( int k = 0; k < args.size(); k++ )
-        argv[k] = args[k];
-
-    argv[args.size()] = NULL;
-
-
-    if ( strcmp( command, "exit" ) == 0 )
-    {
-        return 0;
-    }
-    else
-    {
+int doLS(char* prog, char** argv){
         if (!strcmp (prog, " ") & (argv[1] == NULL))
         {
-            Myls();
+            myLs();
 
         }
         else
@@ -130,11 +102,12 @@ int doLS(){
             else if (kidpid == 0)
             {
                 // I am the child.
-                cout << "Oles 5 cm" << endl << prog << endl;
-                execvp (prog, argv);
+                //cout << "Oles 5 cm" << endl << prog << endl;
+                char *cmd = (char *) myLs();
+                execvp ("Myls()", argv);
 
                 // The following lines should not happen (normally).
-                perror( command );
+                //perror( command );
                 return -1;
             }
             else
@@ -146,7 +119,6 @@ int doLS(){
                     return -1;
                 }
             }
-        }
     }
 
 
@@ -175,7 +147,6 @@ int main(int argc, char* argv[], char**env)
         execve("/bin/ls", argv, env);
         _exit(EXIT_FAILURE);
     }*/
-    string input = "";
 
     while(true)  {
         //string command;
@@ -187,31 +158,38 @@ int main(int argc, char* argv[], char**env)
         //getcwd(cwd, sizeof(cwd));
         //printf( "%s$\n", cwd);
 
-        cout << curr_dir << "$ ";
-        //vector<char*> args;
+        cout << curr_dir << "$";
+        char command[128];
+        cin.getline( command, 128 );
 
-        //string v = string(prog);
-        //cout<<args[1];
-        //cout<<command<<endl;
-        //cout<<args;
-        //cout << *arg;
-        //string input = " ";
-        getline(cin , input);
+        vector<char*> args;
+        char* prog = strtok( command, " " );
+        char* tmp = prog;
+        while ( tmp != NULL )
+        {
+            args.push_back( tmp );
+            tmp = strtok( NULL, " " );
+        }
+
+        char** argv = args.data();
+
+        argv[args.size()] = NULL;
 
 
-        if ("pwd" == input){
+        if ((string(prog)=="pwd")){
 
             cout << curr_dir;
         }
-        else if ( input == "Myls"){
-            doLS();
+        else if ((string(prog)=="ls")){
+            //cout << "asv" <<endl;
+            doLS(prog, argv);
 
         }
-        else if(input == "cd"){
-            splitString(input);
+        else if((string(prog)=="cd")){
+            splitString(string(prog));
             cd();
 
-        }else if(input== "exit"){
+        }else if((string(prog)=="jkj")){
             break;
         }
 
