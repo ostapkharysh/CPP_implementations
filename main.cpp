@@ -119,6 +119,7 @@ int doLS(char* prog, char** argv){
                     perror( "Internal error: cannot wait for child." );
                     return -1;
                 }
+
             }
     }
 
