@@ -1,63 +1,70 @@
-//
-// Created by ostap on 02.03.17.
-//
 #include <iostream>
-#include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <limits.h>
 #include <dirent.h>
 #include <sstream>
-
-
+#include <cstring>
+#include <vector>
 
 using namespace std;
-char *curr_dir = "/usr/bin";
+
+#define PATH_MAX 4096
+
+char *curr_dir = (char *) "/usr/bin";
+/*
 string comm;
 string argum;
-
-    int splitting(string l) {
-        string arr[3];
-
-        int i = 0;
-        stringstream ssin(l);
-
-        while (ssin.good() && i < 3) {
-            ssin >> arr[i];
-
-            ++i;
-            if(i == 3){
-               printf("ERROR : TU DAUN! TAK NE MOZNA PYSATY.");
-                return -1;
-            }
-
+int splitting(string l) {
+    string arr[3];
+    int i = 0;
+    stringstream ssin(l);
+    while (ssin.good() && i < 3) {
+        ssin >> arr[i];
+        ++i;
+        if(i == 3){
+            printf("ERROR : TU DAUN! TAK NE MOZNA PYSATY.");
+            return -1;
         }
-        comm = arr[0];
-
-        argum = arr[1];
-        cout << comm << endl;
-        cout << argum;
-
-
     }
+    comm = arr[0];
+    argum = arr[1];
+    cout << comm << endl;
+    cout << argum;
+    return 0;
+}*/
 
+string command;
+string args;
+void splitString( string line){
+    int i = 0;
+    while(i != sizeof(line)){
+        if(line[i] == ' '){
+            command = line.substr(0,i);
+            args = line.substr(i+1, sizeof(line));
+            break;
+        }else{
+            command = line;
+        }
+        i++;
+    }}
 
+int cd(){
+    string command;
+    string args;
+    chdir(args.c_str());
+    curr_dir += 'args';
+
+    return 0;
+
+}
 
 int ls(){
-/*
-    char cwd[1024];
-    chdir("/path/to/change/directory/to");
-    getcwd(cwd, sizeof(cwd));
-    printf( "%s\n", cwd); }
 
-    */
     DIR *dp = NULL;
     struct dirent *dptr = NULL;
     unsigned int count = 0;
-    /*
-    if(NULL == curr_dir)
-    {
-        printf("\n ERROR : Could not get the working directory\n");
-        return -1;
-    }
-    */
+
     dp = opendir((const char*)curr_dir);
     if(NULL == dp)
     {
@@ -76,16 +83,102 @@ int ls(){
     return 0;
 }
 
-int main (int argc, char * const argv[]) {
+int doLS(){
 
+    // Show prompt.
+    cout << curr_dir << "$";
+    char command[128];
+    cin.getline( command, 128 );
+
+    vector<char*> args;
+    char* prog = strtok( command, " " );
+    char* tmp = prog;
+    while ( tmp != NULL )
+    {
+        args.push_back( tmp );
+        tmp = strtok( NULL, " " );
+    }
+
+    char** argv = new char*[args.size()+1];
+    for ( int k = 0; k < args.size(); k++ )
+        argv[k] = args[k];
+
+    argv[args.size()] = NULL;
+
+    if ( strcmp( command, "exit" ) == 0 )
+    {
+        return 0;
+    }
+    else
+    {
+        if (!strcmp (prog, "ls") & (argv[1] == NULL)) {
+            ls();
+
+        }
+        else
+        {
+            pid_t kidpid = fork();
+
+            if (kidpid < 0)
+            {
+                perror( "Internal error: cannot fork." );
+                return -1;
+            }
+            else if (kidpid == 0)
+            {
+                // I am the child.
+                execvp (prog, argv);
+
+                // The following lines should not happen (normally).
+                perror( command );
+                return -1;
+            }
+            else
+            {
+                // I am the parent.  Wait for the child.
+                if ( waitpid( kidpid, 0, 0 ) < 0 )
+                {
+                    perror( "Internal error: cannot wait for child." );
+                    return -1;
+                }
+            }
+        }
+    }
+
+
+    return 0;
+
+}
+
+
+
+
+int main(int argc, char* argv[], char**env)
+{
+/*
+    pid_t pid = fork();
+    if (pid == -1)
+    {
+        cout << "ERROR" << &endl;
+    }
+    else if (pid > 0)
+    {
+        int status;
+        waitpid(pid, &status, 0);
+    }
+    else {
+        char cwd[1024];
+        getcwd(cwd, sizeof(cwd));
+        //printf( "%s\n", cwd);
+        execve("/bin/ls", argv, env);
+        _exit(EXIT_FAILURE);
+    }*/
     string input = "";
-    char *ptr;
 
-
-    while (true) {
+    while(true)  {
         //string command;
-       // char commandChar[1024];    // Will store the command entered by user in character array
-       // char *argVector[10];    // Will store the arguments after they are tokenized
+        // char commandChar[1024];    // Will store the command entered by user in character array
+        // char *argVector[10];    // Will store the arguments after they are tokenized
         //int argCount;        // Will store the number of arguments
 
         //char cwd[1024];
@@ -93,32 +186,36 @@ int main (int argc, char * const argv[]) {
         //printf( "%s$\n", cwd);
 
         cout << curr_dir << "$ ";
-        getline(cin, input);
-        //cout << input<< "    input" << endl;
-        splitting(input);
-        if (input == "pwd"){
+        //vector<char*> args;
+
+        //string v = string(prog);
+        //cout<<args[1];
+        //cout<<command<<endl;
+        //cout<<args;
+        //cout << *arg;
+        //string input = " ";
+        getline(cin , input);
+
+
+        if ("pwd" == input){
+
             cout << curr_dir;
         }
         else if ( input == "ls"){
-            ls();
+            doLS();
 
         }
-        else if(comm == "cd"){
-            if(argum=="."){
-                cout << "LASHARA. WONO NICHO NE ROBYT." << endl;
-            }
-            else if(argum == ".."){
-                cout << "To previous directory" << endl;
+        else if(input == "cd"){
+            splitString(input);
+            cd();
 
-            }
-            else if(argum == "~" || argum == "") {
-                cout << "Returnimg back to home dir" << endl;
-            }
-
-            
+        }else if(input== "exit"){
+            break;
         }
 
         cout << "\n";
+
+
         //cout << input << endl;
 
 
@@ -127,7 +224,6 @@ int main (int argc, char * const argv[]) {
         ptr = strtok(commandChar, " ");
         argVector[argCount] = ptr;
         argCount++;
-
         while (ptr != NULL)
         {
             ptr = strtok(commandChar, " ");
@@ -143,4 +239,3 @@ int main (int argc, char * const argv[]) {
     return 0;
 
 }
-
