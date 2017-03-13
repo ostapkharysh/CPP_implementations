@@ -49,12 +49,21 @@ void splitString( string line){
         i++;
     }}
 
-int cd(){
-    string command;
-    string args;
-    chdir(args.c_str());
-    curr_dir += 'args';
-
+int cd(char** argv){
+    if (argv[1] == NULL)
+    {
+        //chdir ("/");
+        cout<<"TY DAUN";
+        chdir("/home/ostap/");
+        //cout<<get_current_dir_name();
+    }
+    else
+    {
+        //cout<<argv[1];
+        chdir (argv[1]);
+        cout<<get_current_dir_name();
+        curr_dir = get_current_dir_name();
+    }
     return 0;
 
 }
@@ -85,42 +94,42 @@ int myLs(){
 
 
 int doLS(char* prog, char** argv){
-        if (!strcmp (prog, " ") & (argv[1] == NULL))
-        {
-            myLs();
+    if (!strcmp (prog, " ") & (argv[1] == NULL))
+    {
+        myLs();
 
+    }
+    else
+    {
+        pid_t kidpid = fork();
+
+        if (kidpid < 0)
+        {
+            perror( "Internal error: cannot fork." );
+            return -1;
+        }
+        else if (kidpid == 0)
+        {
+            // I am the child.
+            //cout << "Oles 5 cm" << endl << prog << endl;
+            char *cmd = (char *) myLs();
+            // abo mozna she tak v'ibaty:
+            //execvp (*cmd, argv);
+            execvp (prog, argv);
+
+            // The following lines should not happen (normally).
+            //perror( command );
+            return -1;
         }
         else
         {
-            pid_t kidpid = fork();
-
-            if (kidpid < 0)
+            // I am the parent.  Wait for the child.
+            if ( waitpid( kidpid, 0, 0 ) < 0 )
             {
-                perror( "Internal error: cannot fork." );
+                perror( "Internal error: cannot wait for child." );
                 return -1;
             }
-            else if (kidpid == 0)
-            {
-                // I am the child.
-                char *cmd = (char *) myLs();
-                // abo mozna she tak v'ibaty:
-                // execvp (cmd, argv);
-                execvp ("Myls()", argv);
-
-                // The following lines should not happen (normally).
-                //perror( command );
-                return -1;
-            }
-            else
-            {
-                // I am the parent.  Wait for the child.
-                if ( waitpid( kidpid, 0, 0 ) < 0 )
-                {
-                    perror( "Internal error: cannot wait for child." );
-                    return -1;
-                }
-
-            }
+        }
     }
 
 
@@ -188,10 +197,10 @@ int main(int argc, char* argv[], char**env)
 
         }
         else if((string(prog)=="cd")){
-            splitString(string(prog));
-            cd();
+            cd(argv);
+            //doLS(prog, argv);
 
-        }else if((string(prog)=="jkj")){
+        }else if((string(prog)=="exit")){
             break;
         }
 
