@@ -215,7 +215,7 @@ int doRM(char* prog, char** argv){
             //execvp (*cmd, argv);
 
             //const char *papka = (const char *) ('/home/ostap/CLionProjects/myPWD/' + char(argv[1]));
-            execvp ("/home/ostap/CLionProjects/myPWD/myRm", argv);
+            //execvp ("/home/ostap/CLionProjects/myPWD/myRm", argv);
             execvp (prog, argv);
             //execvp (cmd, argv);
             //cout << "est";
@@ -299,7 +299,7 @@ int main(int argc, char* argv[], char**env)
             doLS(prog, argv);
 
         }
-        else if((string(prog)=="cd")){
+        else if((string(prog)=="mcd")){
             cd(argv);
             //doLS(prog, argv);
         }
