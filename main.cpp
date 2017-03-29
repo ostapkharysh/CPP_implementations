@@ -6,7 +6,6 @@
 #include <sstream>
 #include <cstring>
 #include <vector>
-
 using namespace std;
 
 #define PATH_MAX 4096
@@ -33,7 +32,7 @@ int splitting(string l) {
     cout << argum;
     return 0;
 }*/
-
+vector<char*> vectorOfPath;
 string command;
 string args;
 void splitString( string line){
@@ -52,28 +51,97 @@ void splitString( string line){
 int cd(char** argv){
     if (argv[1] == NULL)
     {
-        //chdir ("/");
-        cout<<"TY DAUN";
-        chdir("/home/ostap/");
-        //cout<<get_current_dir_name();
+        chdir ("/");
+        curr_dir = get_current_dir_name();
     }
-    else
-    {
-        //cout<<argv[1];
+    else{
+
+        vectorOfPath.push_back(argv[1]);
         chdir (argv[1]);
-        cout<<get_current_dir_name();
+        //cout<<get_current_dir_name();
         curr_dir = get_current_dir_name();
     }
     return 0;
 
 }
 
-int myLs(){
 
+void toRemove(const char* data){
+    if (remove(data) != 0) {
+        perror("Error deleting file");
+    } else {
+        puts("File successfully deleted");
+    }
+}
+
+int myRm(char** argv){
+    if(string(argv[1]) == "--help"){
+        cout<<"Usage: rm [OPTION]... [FILE]...\n"
+                "Remove (unlink) the FILE(s).\n"
+                "\n"
+                "  -f, --force           ignore nonexistent files and arguments, never prompt\n"
+                "  -R, --recursive   remove directories and their contents recursively\n"
+                "\n"
+                "By default, rm does not remove directories.  Use the --recursive (-R)\n"
+                "option to remove each listed directory, too, along with all of its contents.\n"
+                "\n"
+                "Note that if you use rm to remove a file, it might be possible to recover\n"
+                "some of its contents, given sufficient expertise and/or time.  For greater\n"
+                "assurance that the contents are truly unrecoverable, consider using shred.\n"
+                "\n"
+                "GNU coreutils online help: <http://www.teambest.org.ua/>\n"
+                "Full documentation at: <http://www.teambest.org/software/coreutils/rm>\n";
+    }
+
+    else if (string(argv[1]) != "-f" & string(argv[1]) != "-R") {
+
+        // The file exists, and is open for input
+
+            for (int i = 1; argv[i] !=NULL; i++) {
+                string usrInput;
+                {
+                    if (opendir((const char *) argv[i])) {
+                        cout << string(argv[i]) << " is a directory!. Unable to delete" << endl;
+                    } else if (fopen((const char *) argv[i], "r") != NULL) {
+                        cout << "Do you wish to delete: " << string(argv[i]) << "? [y/n]  ";
+                        getline(cin, usrInput);
+                        if (string(usrInput) == "y") {
+                            toRemove(argv[i]);
+                        }
+                    } else {
+                        cout << string(argv[i]) << " does not exist" << endl;
+                    }
+                }
+            }
+    }
+    else if(string(argv[1]) == "-f" || string(argv[1]) == "-R") {
+        for (int i = 2; argv[i] !=NULL; i++) {
+            if(((opendir((const char *) argv[i]) == NULL)
+                                          & (fopen((const char *) argv[i], "r") == NULL))){
+                cout << string(argv[i]) << " does not exist" << endl;
+            }
+
+            if (string(argv[1]) == "-R" & ((opendir((const char *) argv[i]) != NULL)
+                                          || (fopen((const char *) argv[i], "r") != NULL))) {
+                toRemove(argv[i]);
+
+            }
+            else if(string(argv[1]) == "-f" &(opendir((const char *) argv[i]) != NULL)) {
+                cout << string(argv[i]) << " is a directory!. Unable to delete" <<endl;
+            }
+            else if (string(argv[1]) == "-f" &(fopen((const char *) argv[i], "r") != NULL)){
+                toRemove(argv[i]);
+            }
+
+        }
+    }
+    return 0;
+    }
+
+int myLs(){
     DIR *dp = NULL;
     struct dirent *dptr = NULL;
     unsigned int count = 0;
-
     dp = opendir((const char*)curr_dir);
     if(NULL == dp)
     {
@@ -94,13 +162,7 @@ int myLs(){
 
 
 int doLS(char* prog, char** argv){
-    if (!strcmp (prog, " ") & (argv[1] == NULL))
-    {
-        myLs();
 
-    }
-    else
-    {
         pid_t kidpid = fork();
 
         if (kidpid < 0)
@@ -129,7 +191,6 @@ int doLS(char* prog, char** argv){
                 perror( "Internal error: cannot wait for child." );
                 return -1;
             }
-        }
     }
 
 
@@ -137,27 +198,68 @@ int doLS(char* prog, char** argv){
 
 }
 
+int doRM(char* prog, char** argv){
+        pid_t kidpid = fork();
+
+        if (kidpid < 0)
+        {
+            perror( "Internal error: cannot fork." );
+            return -1;
+        }
+        else if (kidpid == 0)
+        {
+            // I am the child.
+            //cout << "BLA BLA BLA" << endl << prog << endl;
+            char *cmd = (char *) myRm(argv);
+            // abo mozna she tak v'ibaty:
+            //execvp (*cmd, argv);
+
+            //const char *papka = (const char *) ('/home/ostap/CLionProjects/myPWD/' + char(argv[1]));
+            execvp ("/home/ostap/CLionProjects/myPWD/myRm", argv);
+            execvp (prog, argv);
+            //execvp (cmd, argv);
+            //cout << "est";
+
+            // The following lines should not happen (normally).
+            //perror( command );
+            return -1;
+        }
+        else
+        {
+            // I am the parent.  Wait for the child.
+            if ( waitpid( kidpid, 0, 0 ) < 0 )
+            {
+                perror( "Internal error: cannot wait for child." );
+                return -1;
+            }
+        }
+
+    return 0;
+
+}
+
+
 
 int main(int argc, char* argv[], char**env)
 {
-/*
-    pid_t pid = fork();
-    if (pid == -1)
-    {
-        cout << "ERROR" << &endl;
-    }
-    else if (pid > 0)
-    {
-        int status;
-        waitpid(pid, &status, 0);
-    }
-    else {
-        char cwd[1024];
-        getcwd(cwd, sizeof(cwd));
-        //printf( "%s\n", cwd);
-        execve("/bin/ls", argv, env);
-        _exit(EXIT_FAILURE);
-    }*/
+    /*
+        pid_t pid = fork();
+        if (pid == -1)
+        {
+            cout << "ERROR" << &endl;
+        }
+        else if (pid > 0)
+        {
+            int status;
+            waitpid(pid, &status, 0);
+        }
+        else {
+            char cwd[1024];
+            getcwd(cwd, sizeof(cwd));
+            //printf( "%s\n", cwd);
+            execve("/bin/ls", argv, env);
+            _exit(EXIT_FAILURE);
+        }*/
 
     while(true)  {
         //string command;
@@ -191,16 +293,22 @@ int main(int argc, char* argv[], char**env)
 
             cout << curr_dir;
         }
-        else if ((string(prog)=="ls")){
+        else if ((string(prog)=="mls")){
             //cout << "asv" <<endl;
+            //  filesystem tut4.cpp  ---------------------------------------------------------------//
             doLS(prog, argv);
 
         }
         else if((string(prog)=="cd")){
             cd(argv);
             //doLS(prog, argv);
+        }
 
-        }else if((string(prog)=="exit")){
+        else if(string(prog) == "mrm"){
+            doRM(prog, argv);
+        }
+
+        else if((string(prog)=="exit")){
             break;
         }
 
