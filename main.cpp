@@ -21,6 +21,8 @@
 #include <fstream>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <algorithm>
+#include <map>
 
 using namespace std;
 
@@ -91,6 +93,11 @@ void toRemove(const char* data){
 }
 
 int myRm(char** argv){
+    cout << argv[1] <<endl;
+    if (string(argv[1]) == " "){
+        cout << "no arguments" << endl;
+    }
+
     if(string(argv[1]) == "--help"){
         cout<<"Usage: rm [OPTION]... [FILE]...\n"
                 "Remove (unlink) the FILE(s).\n"
@@ -154,7 +161,7 @@ int myRm(char** argv){
     return 0;
     }
 
-int myLs(){
+int myLs(char** argv){
     DIR *dp = NULL;
     struct dirent *dptr = NULL;
     unsigned int count = 0;
@@ -175,7 +182,54 @@ int myLs(){
 
     return 0;
 }
+   /* DIR *dp = NULL;
+    struct dirent *dptr = NULL;
+    unsigned int count = 0;
+    dp = opendir((const char*)curr_dir);
+    cout << "start " << argv[1] <<  endl;
+    if(NULL == dp)
+    {
+        printf("\n ERROR : Could not open the working directory\n");
+        return -1;
+    }
 
+    // order by SIZE
+    else if (string(argv[1]) == "-S") {
+            int data = printf("%s  ", dptr->d_name);
+            cout << data;
+        map<int, string> mapOffiles;
+        struct stat filestatus;
+        cout << "HERE"<< endl;
+        for (int i = 2; argv[i] != NULL; i++) {
+            if (opendir((const char *) argv[i]) != NULL || fopen((const char *) argv[i], "r") != NULL) {
+                stat(argv[i], &filestatus);
+                mapOffiles.insert(make_pair(filestatus.st_size, argv[i]));
+            }
+        }
+        for (map<int, string>::iterator ii = mapOffiles.begin(); ii != mapOffiles.end(); ++ii) {
+            cout << (*ii).second << endl;
+        }
+    }
+    // simple LS
+        //cd home/ostap/D
+    else{
+    for(count = 0; NULL != (dptr = readdir(dp)); count++) {
+        // Check if the name of the file/folder begins with '.'
+        // If yes, then do not display it.
+        if (dptr->d_name[0] != '.')
+            //cout << dptr;
+            printf("%s  ", dptr->d_name);
+        //printf("%s  ",dptr->d_name);
+
+    }
+
+    }
+
+
+
+    return 0;
+}
+*/
 
 int doLS(char* prog, char** argv){
 
@@ -190,7 +244,7 @@ int doLS(char* prog, char** argv){
         {
             // I am the child.
             //cout << "Oles 5 cm" << endl << prog << endl;
-            char *cmd = (char *) myLs();
+            char *cmd = (char *) myLs(argv);
             // abo mozna she tak v'ibaty:
             //execvp (*cmd, argv);
             execvp (prog, argv);
@@ -339,8 +393,7 @@ int myCP(int a, char** argv) {
             }
             else if (((i==1)&&((name!="-h")||(name != "--help"))) ||
                      ((i>2)&&(name != "-f"))||((i>3)&&(name == "-f"))) {
-                cout << "WRONG ARGUMENT" << endl;
-                return -1;
+                                                                                                 return -1;
             }
             else if (((((i==2)&&(stat(argv[i],&st) == -1))||
                        ((i==3)&&(stat(argv[i],&st) == 0)&&(name == "-f"))))) {
@@ -361,6 +414,38 @@ int myCP(int a, char** argv) {
 
 
 /*hjsbdjsdfjsdhfjsdkhflgjhdflkjglkdjgldkfjgldfjgkldsfjglsdjkfskdfjsldf*/
+
+int doSize(char* prog, char** argv) {
+    DIR *dp;
+    struct dirent *dir;
+    vector<string> dirlist;
+    int i = 0;
+    map<int,string> mapOffiles;
+    struct stat filestatus;
+    dp = opendir((const char *) curr_dir);
+    if (dp) {
+        while ((dir = readdir(dp)) != NULL) {
+            i++;
+            //cout<<dir->d_name<<endl;
+            dirlist.push_back(dir->d_name);
+        }
+
+        closedir(dp);
+    }
+
+    for (int i = 0; i < dirlist.size(); i++){
+        //cout << dirlist[i] << endl;
+        stat((const char *) dirlist[i], &filestatus); //// трешак тут на тому крешиться
+        mapOffiles.insert(make_pair(filestatus.st_size, dirlist[i]));
+
+}
+    for( map<int,string>::iterator ii=mapOffiles.begin(); ii!=mapOffiles.end(); ++ii)
+    {
+        cout  << (*ii).second << ":  "<<(*ii).first<< endl;
+    }
+
+  return 0;
+}
 
 int doCP(char* prog, char** argv){
     pid_t kidpid = fork();
@@ -477,9 +562,14 @@ int main(int argc, char* argv[], char**env)
             doRM(prog, argv);
         }
 
+        else if(string(prog) == "msize"){
+            doSize(prog, argv);
+        }
+
         else if((string(prog)=="exit")){
             break;
         }
+
 
         cout << "\n";
 
