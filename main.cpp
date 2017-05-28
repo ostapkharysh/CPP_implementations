@@ -38,15 +38,23 @@ void Producer() {
                 // There's a non-space.
                 cout<< "linesize: " << line.length() << endl;
                if (line.length() / limit_chars > 1.4) {
-                    int addCount = 0;
-                    int divider = (int) (line.length() / limit_chars)+1;
+
+                    int divider = (int) (line.length() / limit_chars);
                     int adding = (int) line.length()/divider;
-                   //попробуй поміняти на while
-                    for (unsigned int i = 0; i < line.length()-1; i= i + adding + addCount) {
-                        while (line[i + adding + addCount] != ' ') addCount+=1;
-                        cout << line.substr(i, i+ adding + addCount) << endl;
-                        ++line_index;;
+                   //попробуй поміняти на while все через addCount
+                    int addCount = 0;
+                    int i = 0;
+                    cout <<"divider" << divider<<endl;
+                    while ( i < line.length()){
+                        while (line[i + adding + addCount] != ' ') {addCount+=1;}
+                        cout << i << " Output I  " << i+ adding + addCount << endl;
+                        cout << "EXPRESSION: "<< line.substr(i, i+ adding + addCount) << endl;   //to del
                         block.push_back(line.substr(i, i + adding+ addCount));
+                        cout << i << "I" << endl;
+                        i = (i + adding + addCount);
+                        cout << i << "I" <<" " <<adding <<" "<< addCount <<endl;
+                        ++line_index;;
+                        addCount = 0;
                         cout << "was here OST" << endl;
                     }
                     }
