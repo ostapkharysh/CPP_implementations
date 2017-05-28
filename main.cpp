@@ -7,6 +7,8 @@
 #include <map>
 #include <fstream>
 #include <vector>
+#include <cstring>
+#include <sstream>
 
 using namespace std;
 
@@ -14,18 +16,28 @@ atomic<bool> isReady{false};
 mutex mtx;
 condition_variable condvar;
 map<string, int> mapper;
-
-string line;
-vector<string> block;
-size_t line_index = 0;
-int block_size = 100;
-int limit_chars = 100;
-
-int c = 0;
-
 deque<vector<string>> dq;
 
+string punctuationOut(string wrd){
+
+
+    for (int i = 0, len = wrd.size(); i < len; i++)
+    {
+        if (ispunct(wrd[i]))
+        {
+            wrd.erase(i--, 1);
+            len = wrd.size();
+        }
+    }
+    return wrd;
+}
+
 void Producer() {
+    string line;
+    vector<string> block;
+    size_t line_index = 0;
+    int block_size = 100;
+    int limit_chars = 100;
     std::cout << " Producer " << std::endl;
     fstream fl("/home/ostap/CLionProjects/WordsCount2/file.txt"); //full path to the file
     if (!fl.is_open()) {
@@ -47,13 +59,13 @@ void Producer() {
                     cout <<"divider" << divider<<endl;
                     while ( i < line.length()){
                         while (line[i + adding + addCount] != ' ') {addCount+=1;}
-                        cout << i << " Output I  " << i+ adding + addCount << endl;
-                        cout << "EXPRESSION: "<< line.substr(i, i+ adding + addCount) << endl;   //to del
-                        block.push_back(line.substr(i, i + adding+ addCount));
-                        cout << i << "I" << endl;
-                        i = (i + adding + addCount);
+                        cout << i << " Output I  " << i + adding + addCount << endl;
+                        cout << "EXPRESSION: " << line.substr(i, adding + addCount) << endl;   //to del
+                        block.push_back(line.substr(i, adding +addCount));
+                        cout << i << " I" << endl;
+                        i = i + adding + addCount;
                         cout << i << "I" <<" " <<adding <<" "<< addCount <<endl;
-                        ++line_index;;
+                        ++line_index;
                         addCount = 0;
                         cout << "was here OST" << endl;
                     }
@@ -67,8 +79,6 @@ void Producer() {
 
 
                 if (line_index >= block_size) {
-                    c++;
-                    cout << c << endl;
                     {
                         lock_guard<mutex> guard(mtx);
                         //cout << "Producing message: " << x << " th" << endl;
@@ -79,49 +89,73 @@ void Producer() {
 
 
                 }
-                condvar.notify_one();
+
 
 
             }
             cout << "Producer completed" << endl;
-            isReady = true;
+
             // for (unsigned i = 0; i < block.size(); ++i) cout << ' ' << block[i];
             //  cout << '\n';
 
             //this_thread::sleep_for(chrono::seconds(1));
         }
+
     }
+    condvar.notify_one();
+    isReady = true;
+
 }
 
 void Consumer() {
     while (true) {
+        cout << "QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ";
         unique_lock<mutex> lk(mtx);
         if (!dq.empty()) {
-            vector<string> & i = dq.front();
+            cout << "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << endl;
+            vector<string> & v = dq.front();
             dq.pop_front();
             lk.unlock();
-            cout << "Consuming: " << i.data() << " th" << endl;
+            string word;
+            for(int i = 0; i < v.size(); i++) {
+                cout<<v[i]<<endl;
+                cout<<v[i].size()<<endl;
+                istringstream iss(v[i]);
+                while(iss >> word){
+
+                   //word = punctuationOut(word);
+                    cout << word << endl;
+                }
+                if(word !="") {
+                    lock_guard<mutex> lg(mtx);
+                    ++mapper[word];
+                }
+            }
         } else {
-            if(isReady){
+            cout << "Finish!";
+            if(isReady)
                 break;
-            }
-            else {
+            else
                 condvar.wait(lk);
-                cout << "There are no messages remained from producer" << endl;
-            }
-
         }
-
-        cout << "\nConsumer is done" << endl;
-    }
 }
+
+
+   }
+
+
 int main() {
     //cout << "Hello, World!" << endl;
+//    auto t1 = (Producer);
+//    auto t2 = thread(Consumer);
+//    auto t3 = async(launch::async, Consumer);
+//    t1.join();
+//    t2.join();
+//    t3.get();
+
     auto t1 = async(launch::async, Producer);
     auto t2 = async(launch::async, Consumer);
-    //auto t3 = async(launch::async, Consumer);
     t1.get();
     t2.get();
-    //t3.get();
     return -1;
 }
