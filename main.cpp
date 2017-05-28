@@ -12,11 +12,11 @@
 
 using namespace std;
 
-atomic<bool> isReady{false};
+std::atomic<bool> isReady{false};
 mutex mtx;
 condition_variable condvar;
 map<string, int> mapper;
-deque<vector<string>> dq;
+std::deque<vector<string>> dq;
 
 string punctuationOut(string wrd){
 
