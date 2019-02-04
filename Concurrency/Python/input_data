@@ -1,0 +1,3 @@
+infile="dt10.txt"
+outfile="result.txt"
+thread=1

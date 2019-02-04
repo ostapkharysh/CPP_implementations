@@ -1,0 +1,48 @@
+#include <iostream>
+#include <mutex>
+#include <future>
+#include <vector>
+
+using namespace std;
+mutex mtx;
+void findPrimeNumbers(int start, int end, int &primeNumbers) {
+    int num,i,count;
+    int localNumber = 0;
+    for(num = start;num<=end;num++) {
+        count = 0;
+        for (i = 2; i <= num / 2; i++) {
+            if (num % i == 0) {
+                count++;
+                break;
+            }
+        }
+
+        if (count == 0 && num != 1) {
+            localNumber++;
+        }
+
+    }
+    primeNumbers += localNumber;
+
+}
+
+int main(){
+
+    vector<future<int>> futures;
+    int primeNumbers = 0;
+    auto t1 = async(launch::async, findPrimeNumbers, 1, 5, ref(primeNumbers));
+    auto t2 = async(launch::async, findPrimeNumbers, 6, 10, ref(primeNumbers));
+    auto t3 = async(launch::async, findPrimeNumbers, 11, 15, ref(primeNumbers));
+    auto t4 = async(launch::async, findPrimeNumbers, 16, 20, ref(primeNumbers));
+    auto t5 = async(launch::async, findPrimeNumbers, 21, 25, ref(primeNumbers));
+    auto t6 = async(launch::async, findPrimeNumbers, 26, 30, ref(primeNumbers));
+    t1.get();
+    t2.get();
+    t3.get();
+    t4.get();
+    t5.get();
+    t6.get();
+
+    cout << "Number of prime numbers: " << primeNumbers;
+    return 0;
+}
